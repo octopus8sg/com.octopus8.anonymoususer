@@ -1,6 +1,5 @@
-# anonymoususer
+# ANONYMOUS USER CONTACT EXTENSION
 
-![Screenshot](/images/screenshot.png)
 
 This extension creates ANONYMOUS USER contact
 
