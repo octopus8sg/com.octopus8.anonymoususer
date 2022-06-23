@@ -3,9 +3,12 @@
 ![Screenshot](/images/screenshot.png)
 
 This extension creates ANONYMOUS USER contact
+
 FIRST NAME: ANONYMOUS
+
 LAST NAME: USER
-EXTERNAL IDENTIFIER: ANONYMOUS
+
+EXTERNAL IDENTIFIER: ANONYMOUS_USER
 
 The contact is not deleted with uninstalling this application
 
