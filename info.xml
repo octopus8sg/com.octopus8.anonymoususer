@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<extension key="git remote add origin https://github.com/octopus8sg/com.octopus8.anonymoususer.git" type="module">
+<extension key="com.octopus8.anonymoususer" type="module">
   <file>anonymoususer</file>
   <name>Octopus8 ANONYMOUS USER</name>
   <description>This extension creates Anonymous User Contact</description>
