@@ -1,15 +1,24 @@
 # ANONYMOUS USER CONTACT EXTENSION
 
 
-This extension creates ANONYMOUS USER contact
+This extension creates  3 entities or updates if they are present:
 
-FIRST NAME: ANONYMOUS
+1) ANONYMOUS USER contact
 
-LAST NAME: USER
+    - FIRST NAME: ANONYMOUS
 
-EXTERNAL IDENTIFIER: ANONYMOUS_USER
+    - LAST NAME: USER
+    
+    - EXTERNAL IDENTIFIER: ANONYMOUS_USER
 
-The contact is not deleted with uninstalling this application
+    - EMAIL: anonymous@user.contact 
+
+
+2) Anonymous Payments Profile
+
+3) Email (Optional) field for Anonymous Payments Profile.
+
+This entities are not deleted with uninstalling this application
 
 The extension is licensed under [AGPL-3.0](LICENSE.txt).
 

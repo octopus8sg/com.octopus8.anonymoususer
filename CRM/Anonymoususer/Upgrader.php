@@ -3,38 +3,136 @@
 use CRM_Anonymoususer_ExtensionUtil as E;
 
 /**
- * Collection of upgrade steps.
+ * Class CRM_Anonymoususer_Upgrader
  */
 class CRM_Anonymoususer_Upgrader extends CRM_Anonymoususer_Upgrader_Base
 {
-
+    public const EXTERNAL_ID = "ANONYMOUS_USER";
+    public const EMAIL = "anonymous@user.contact";
+    public const PROFILE_NAME = "anonymous_profile";
+    public const FIELD_NAME = "Email (Optional)";
     // By convention, functions that look like "function upgrade_NNNN()" are
     // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
     private static function create_anonymous_user(): void
     {
         $first_name = "ANONYMOUS";
         $last_name = "USER";
-        $external_id = "ANONYMOUS_USER";
+        $external_id = self::EXTERNAL_ID;
+        $email = self::EMAIL;
         $result_old = civicrm_api3('Contact', 'get', ['sequential' => 1,
             'external_identifier' => $external_id,
         ]);
 //        CRM_Core_Error::debug_var('find_user', $result);
+        $contactArray = ['sequential' => 1,
+            'contact_type' => 'Individual',
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'external_identifier' => $external_id,
+            'do_not_phone' => TRUE,
+            'do_not_email' => TRUE,
+            'do_not_mail' => TRUE,
+            'do_not_sms' => TRUE,
+            'do_not_trade' => TRUE,
+            'is_deleted' => FALSE,
+            'email' => $email,
+        ];
         if ($result_old['count'] == 0) {
             // Create the contact.
-            $result_new = civicrm_api3('Contact', 'create', ['sequential' => 1,
-                'contact_type' => 'Individual',
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'external_identifier' => $external_id,
-                'do_not_phone' => TRUE,
-                'do_not_email' => TRUE,
-                'do_not_mail' => TRUE,
-                'do_not_sms' => TRUE,
-                'do_not_trade' => TRUE,
-                'is_deleted' => FALSE
-            ]);
+            $result_new = civicrm_api3('Contact', 'create', $contactArray);
+        } else {
+            $anonymous = $result_old['values'];
+            $anonymous = reset($anonymous);
+            $anonymous_id = $anonymous['id'];
+            $contactArray['id'] = $anonymous_id;
+            $result_new = civicrm_api3('Contact', 'create', $contactArray);
         }
-//        CRM_Core_Error::debug_var('create_user', $result);
+
+//                CRM_Core_Error::debug_var('create_user', $result);
+    }
+
+    private static function create_anonymous_profile()
+    {
+        $search_params_profile = [
+            'sequential' => 1,
+            'name' => self::PROFILE_NAME
+        ];
+        $result_profile = civicrm_api3('UFGroup', 'get', $search_params_profile);
+//        CRM_Core_Error::debug_var('find_user', $result);
+        $profile_id = null;
+        $profile_params = [
+            'title' => 'Anonymous Payments Profile',
+            'frontend_title' => 'Anonymous Payments Profile',
+            'description' => 'Anonymous Payments Profile',
+            'name' => self::PROFILE_NAME,
+            'weight' => 1,
+            'is_active' => 1,
+            'is_update_dupe' => 0,
+            'is_cms_user' => 0,
+            'is_proximity_search' => 0,
+            'is_reserved' => 1,
+            'group_type' => 'Contact',
+        ];
+
+        if ($result_profile['count'] == 0) {
+            // Create the contact.
+            $result_new = civicrm_api3('UFGroup', 'create', $profile_params);
+            $profile_id = $result_new['id'];
+        } else {
+            $anonymous = $result_profile['values'];
+            $anonymous = reset($anonymous);
+            $profile_id = $anonymous['id'];
+            $profile_params['id'] = $profile_id;
+            $result_new = civicrm_api3('UFGroup', 'create', $profile_params);
+            $profile_id = $result_new['id'];
+        }
+        return $profile_id;
+//                CRM_Core_Error::debug_var('create_user', $result);
+    }
+
+    private static function create_anonymous_email_field($group_id): void
+    {
+//        $group_id = null;
+        //first search for profile
+        $field_id = null;
+        $field_label = self::FIELD_NAME;
+        $field_name = "email";
+        $result_field = civicrm_api3('UFField', 'get', ['sequential' => 1,
+            'field_name' => $field_name,
+            'field_label' => $field_label,
+            'group_id' => $group_id
+        ]);
+//        CRM_Core_Error::debug_var('find_user', $result);
+        $field_params = ['group_id' => $group_id,
+            'field_id' => $field_id,
+            'field_name' => $field_name,
+            'visibility' => 'User and User Admin Only',
+            'in_selector' => 0,
+            'is_searchable' => 0,
+            'weight' => 1,
+            'help_pre' => "",
+            'help_post' => "",
+            'is_required' => FALSE,
+            'is_multi_summary' => FALSE,
+            'is_active' => 1,
+            'is_view' => 1,
+            'label' => $field_label,
+            'uf_group_id' => $group_id,
+            'id' => $field_id,
+            'field_type' => 'Contact',
+            'location_type_id' => null,
+            'version' => 3];
+        if ($result_field['count'] == 0) {
+            // Create the contact.
+            $result_new = civicrm_api3('UFField', 'create', $field_params);
+        } else {
+            $anonymous = $result_field['values'];
+            $anonymous = reset($anonymous);
+            $anonymous_id = $anonymous['id'];
+            $field_params['id'] = $anonymous_id;
+            $result_new = civicrm_api3('UFField', 'create', $field_params);
+        }
+
+//                CRM_Core_Error::debug_var('create_user', $result);
     }
 
     /**
@@ -43,8 +141,9 @@ class CRM_Anonymoususer_Upgrader extends CRM_Anonymoususer_Upgrader_Base
      */
     public function install()
     {
-
         self::create_anonymous_user();
+        $group_id = self::create_anonymous_profile();
+        self::create_anonymous_email_field($group_id);
     }
 
     /**
@@ -78,6 +177,9 @@ class CRM_Anonymoususer_Upgrader extends CRM_Anonymoususer_Upgrader_Base
     public function enable()
     {
         self::create_anonymous_user();
+        $group_id = self::create_anonymous_profile();
+        self::create_anonymous_email_field($group_id);
+
     }
 
     /**
