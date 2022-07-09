@@ -11,12 +11,14 @@ class CRM_Anonymoususer_Upgrader extends CRM_Anonymoususer_Upgrader_Base
     public const EMAIL = "anonymous@user.contact";
     public const PROFILE_NAME = "anonymous_profile";
     public const FIELD_NAME = "Email (Optional)";
+    public const FIRST_NAME = "ANONYMOUS";
+    public const LAST_NAME = "USER";
     // By convention, functions that look like "function upgrade_NNNN()" are
     // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
     private static function create_anonymous_user(): void
     {
-        $first_name = "ANONYMOUS";
-        $last_name = "USER";
+        $first_name =  self::FIRST_NAME;
+        $last_name = self::LAST_NAME;
         $external_id = self::EXTERNAL_ID;
         $email = self::EMAIL;
         $result_old = civicrm_api3('Contact', 'get', ['sequential' => 1,

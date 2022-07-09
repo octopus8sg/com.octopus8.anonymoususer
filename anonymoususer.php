@@ -187,7 +187,10 @@ function anonymoususer_civicrm_pre($op, $objectName, $objectId, &$params)
 {
     // If this is contribution and operation is create and params['cid'] or ['contact_id'] is empty.
     $external_id = CRM_Anonymoususer_Upgrader::EXTERNAL_ID;
-//
+    $email = CRM_Anonymoususer_Upgrader::EMAIL;
+    $first_name = CRM_Anonymoususer_Upgrader::FIRST_NAME;
+    $last_name = CRM_Anonymoususer_Upgrader::LAST_NAME;
+    //
 //    CRM_Core_Error::debug_var('op', $op);
 //    CRM_Core_Error::debug_var('objectName', $objectName);
 //    CRM_Core_Error::debug_var('params', $params);
@@ -195,22 +198,23 @@ function anonymoususer_civicrm_pre($op, $objectName, $objectId, &$params)
         $email_primary = strval($params['email-Primary']);
         $email_five = strval($params['email-five']);
         if ($email_primary === null || $email_primary === "" || $email_primary === FALSE) {
-            $email = CRM_Anonymoususer_Upgrader::EMAIL;
             $params['email-Primary'] = $email;
         }
-        if ($email_primary === null || $email_primary === "" || $email_primary === FALSE) {
-            $email = CRM_Anonymoususer_Upgrader::EMAIL;
-            $params['email-Primary'] = $email;
-        }
-        $result_old = civicrm_api3('Contact', 'get', ['sequential' => 1,
-            'external_identifier' => $external_id,
-        ]);
+        if ($params['email-Primary'] == $email) {
+            if (!isset($params['contact_id']) || $params['contact_id'] == null) {
+                $result_old = civicrm_api3('Contact', 'get', ['sequential' => 1,
+                    'external_identifier' => $external_id,
+                ]);
 //        CRM_Core_Error::debug_var('find_user', $result);
-        if ($result_old['count'] > 0) {
-            $anonymous = $result_old['values'];
-            $anonymous = reset($anonymous);
-            $anonymous_id = $anonymous['id'];
-            $params['contact_id'] = $anonymous_id;
+                if ($result_old['count'] > 0) {
+                    $anonymous = $result_old['values'];
+                    $anonymous = reset($anonymous);
+                    $anonymous_id = $anonymous['id'];
+                    $params['contact_id'] = $anonymous_id;
+                    $params['first_name'] = $first_name;
+                    $params['last_name'] = $last_name;
+                }
+            }
         }
     }
 }
