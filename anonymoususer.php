@@ -18,16 +18,6 @@ function anonymoususer_civicrm_config(&$config)
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
- */
-function anonymoususer_civicrm_xmlMenu(&$files)
-{
-    _anonymoususer_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implements hook_civicrm_install().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
@@ -88,54 +78,6 @@ function anonymoususer_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL)
 }
 
 /**
- * Implements hook_civicrm_managed().
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
- */
-function anonymoususer_civicrm_managed(&$entities)
-{
-    _anonymoususer_civix_civicrm_managed($entities);
-}
-
-/**
- * Implements hook_civicrm_caseTypes().
- *
- * Add CiviCase types provided by this extension.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_caseTypes
- */
-function anonymoususer_civicrm_caseTypes(&$caseTypes)
-{
-    _anonymoususer_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implements hook_civicrm_angularModules().
- *
- * Add Angular modules provided by this extension.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_angularModules
- */
-function anonymoususer_civicrm_angularModules(&$angularModules)
-{
-    // Auto-add module files from ./ang/*.ang.php
-    _anonymoususer_civix_civicrm_angularModules($angularModules);
-}
-
-/**
- * Implements hook_civicrm_alterSettingsFolders().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterSettingsFolders
- */
-function anonymoususer_civicrm_alterSettingsFolders(&$metaDataFolders = NULL)
-{
-    _anonymoususer_civix_civicrm_alterSettingsFolders($metaDataFolders);
-}
-
-/**
  * Implements hook_civicrm_entityTypes().
  *
  * Declare entity types provided by this module.
@@ -145,14 +87,6 @@ function anonymoususer_civicrm_alterSettingsFolders(&$metaDataFolders = NULL)
 function anonymoususer_civicrm_entityTypes(&$entityTypes)
 {
     _anonymoususer_civix_civicrm_entityTypes($entityTypes);
-}
-
-/**
- * Implements hook_civicrm_themes().
- */
-function anonymoususer_civicrm_themes(&$themes)
-{
-    _anonymoususer_civix_civicrm_themes($themes);
 }
 
 // --- Functions below this ship commented out. Uncomment as required. ---
@@ -183,38 +117,80 @@ function anonymoususer_civicrm_themes(&$themes)
 //  _anonymoususer_civix_navigationMenu($menu);
 //}
 
+/**
+ * @param $op
+ * @param $objectName
+ * @param $objectId
+ * @param $params
+ */
 function anonymoususer_civicrm_pre($op, $objectName, $objectId, &$params)
 {
-    // If this is contribution and operation is create and params['cid'] or ['contact_id'] is empty.
+    if ($op === 'create' && ($objectName === 'Profile')) {
+        $params = setEmptyPrimaryEmailToAnonymous($params);
+        $params = resetAnonymousName($params);
+    }
+}
+
+/**
+ * @param $params
+ * @return mixed
+ */
+function resetAnonymousName(&$params)
+{
     $external_id = CRM_Anonymoususer_Upgrader::EXTERNAL_ID;
     $email = CRM_Anonymoususer_Upgrader::EMAIL;
     $first_name = CRM_Anonymoususer_Upgrader::FIRST_NAME;
     $last_name = CRM_Anonymoususer_Upgrader::LAST_NAME;
-    //
-//    CRM_Core_Error::debug_var('op', $op);
-//    CRM_Core_Error::debug_var('objectName', $objectName);
-//    CRM_Core_Error::debug_var('params', $params);
-    if ($op === 'create' && ($objectName === 'Profile')) {
-        $email_primary = strval($params['email-Primary']);
-        $email_five = strval($params['email-five']);
-        if ($email_primary === null || $email_primary === "" || $email_primary === FALSE) {
-            $params['email-Primary'] = $email;
-        }
-        if ($params['email-Primary'] == $email) {
-            if (!isset($params['contact_id']) || $params['contact_id'] == null) {
-                $result_old = civicrm_api3('Contact', 'get', ['sequential' => 1,
-                    'external_identifier' => $external_id,
-                ]);
+    if ($params['email-Primary'] == $email) {
+        if (!isset($params['contact_id']) || $params['contact_id'] == null) {
+            $anonymousId = checkIsAnonymousPresent($external_id);
 //        CRM_Core_Error::debug_var('find_user', $result);
-                if ($result_old['count'] > 0) {
-                    $anonymous = $result_old['values'];
-                    $anonymous = reset($anonymous);
-                    $anonymous_id = $anonymous['id'];
-                    $params['contact_id'] = $anonymous_id;
-                    $params['first_name'] = $first_name;
-                    $params['last_name'] = $last_name;
-                }
+            if ($anonymousId > 0) {
+                $anonymous_id = $anonymousId;
+                $params['contact_id'] = $anonymous_id;
+                $params['first_name'] = $first_name;
+                $params['last_name'] = $last_name;
             }
         }
     }
+    return $params;
+
+}
+
+/**
+ * @param string $external_id
+ * @return int
+ */
+
+function checkIsAnonymousPresent(string $external_id)
+{
+    $getAnonymousContacts = civicrm_api3('Contact', 'get', ['sequential' => 1,
+        'external_identifier' => $external_id,
+    ]);
+    if ($getAnonymousContacts['count'] > 0) {
+        $anonymousValues = $getAnonymousContacts['values'];
+        $anonymous = reset($anonymousValues);
+        $anonymous_id = $anonymous['id'];
+        return $anonymous_id;
+    }
+    return 0;
+}
+
+/**
+ * @param $params
+ * @return mixed
+ */
+function setEmptyPrimaryEmailToAnonymous(&$params)
+{
+    $emailAnonymous = CRM_Anonymoususer_Upgrader::EMAIL;
+
+    $email_primary = strval($params['email-Primary']);
+
+    if ($email_primary === null || $email_primary === "" || $email_primary === FALSE) {
+
+        $params['email-Primary'] = $emailAnonymous;
+        return $params;
+    }
+    print('emailprimary: ' . $email_primary);
+    return $params;
 }

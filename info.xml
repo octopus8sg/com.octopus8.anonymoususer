@@ -6,7 +6,7 @@
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Octopus8</author>
-    <email></email>
+    <email/>
   </maintainer>
   <urls>
     <url desc="Main Extension Page">https://octopus8.com</url>
@@ -26,5 +26,6 @@
   </classloader>
   <civix>
     <namespace>CRM/Anonymoususer</namespace>
+    <format>22.05.2</format>
   </civix>
 </extension>
