@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<extension key="com.octopus8.anonymoususer" type="module">
+  <file>anonymoususer</file>
+  <name>Octopus8 ANONYMOUS USER</name>
+  <description>This extension creates Anonymous User Contact</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Octopus8</author>
+    <email></email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">https://octopus8.com</url>
+    <url desc="Documentation">https://octopus8.com</url>
+    <url desc="Support">https://octopus8.com</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2022-06-22</releaseDate>
+  <version>1.0.4-a</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>5.0</ver>
+  </compatibility>
+  <comments>This is a new, undeveloped module</comments>
+  <classloader>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <civix>
+    <namespace>CRM/Anonymoususer</namespace>
+  </civix>
+</extension>
